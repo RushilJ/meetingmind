@@ -102,6 +102,7 @@ function AiMessage({ text }: { text: string }) {
       <div style={{
         fontSize: 14, lineHeight: 1.65, color: "var(--color-mm-text2)",
         paddingLeft: 14, borderLeft: "1.5px solid oklch(0.55 0.16 268)",
+        whiteSpace: "pre-wrap",
       }}>
         {text}
       </div>
