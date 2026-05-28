@@ -1,23 +1,27 @@
 # MeetingMind
 
-**AI-powered meeting intelligence.** Upload a recording, get back a transcript, a summary, the decisions, the action items — and a meeting you can talk to.
+**Upload a meeting recording. Get back a transcript, a summary, key decisions, and action items — then ask the meeting anything.**
 
-![MeetingMind Dashboard](https://github.com/RushilJ/meetingmind/raw/main/design_handoff_meetingmind/preview.png)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-meetingmind--alpha--puce.vercel.app-6366f1?style=flat-square)](https://meetingmind-alpha-puce.vercel.app)
+[![Backend](https://img.shields.io/badge/API-Railway-6366f1?style=flat-square)](https://meetingmind-production-d2ec.up.railway.app/health)
+[![TypeScript](https://img.shields.io/badge/TypeScript-79%25-3178c6?style=flat-square)](https://github.com/RushilJ/meetingmind)
+[![Python](https://img.shields.io/badge/Python-16%25-3776ab?style=flat-square)](https://github.com/RushilJ/meetingmind)
 
 ---
 
 ## What it does
 
-Most meeting notes get written once and never read again. MeetingMind turns any audio or video recording into a structured, searchable, conversational knowledge base.
+Most meeting notes get written once and never read again. MeetingMind turns any audio or video recording into a structured, conversational knowledge base.
 
-| Feature | Description |
-|---|---|
-| **Transcription** | Deepgram nova-2 converts audio to text with smart formatting |
-| **AI Extraction** | Gemini 2.5 Flash pulls out a TL;DR, full summary, key decisions, and structured action items (owner + task + due date) |
-| **Chat** | Ask the meeting anything — get answers grounded in the transcript, plus AI recommendations |
-| **Dashboard** | Search across all your meetings by keyword |
-| **Inline editing** | Rename any meeting title in place |
-| **Persistent history** | Chat messages saved to DB — pick up where you left off |
+| | Feature | Detail |
+|---|---|---|
+| 🎙️ | **Transcription** | Deepgram nova-2 with smart formatting (punctuation, paragraphs) |
+| 🤖 | **AI Extraction** | Gemini 2.5 Flash → TL;DR, full summary, key decisions, action items (owner + task + due date), topic tags |
+| 💬 | **Chat** | Ask anything about the meeting — answers grounded in the transcript, plus independent AI recommendations |
+| 🔍 | **Search** | Keyword search across all meetings (all words must match, anywhere in title/summary/TL;DR) |
+| ✏️ | **Inline editing** | Rename meeting titles in place — auto-saves on blur or Enter |
+| 💾 | **Persistent chat** | All messages saved to DB — pick up any conversation where you left off |
+| 🔄 | **Retry** | Failed processing jobs show the error and can be re-run on the stored file |
 
 ---
 
@@ -27,33 +31,34 @@ Most meeting notes get written once and never read again. MeetingMind turns any 
 |---|---|
 | Frontend | Next.js 14 (App Router) · TypeScript · Tailwind CSS |
 | Backend | FastAPI (Python) |
-| Database | Supabase (Postgres + Storage) |
+| Database | Supabase (PostgreSQL + Storage) |
 | Transcription | Deepgram nova-2 |
 | AI | Google Gemini 2.5 Flash |
-| Auth | JWT (HS256, stored in localStorage) |
+| Auth | JWT HS256 · 24-hour expiry |
 | Deployment | Vercel (frontend) · Railway (backend) |
 
 ---
 
-## Getting started
+## Running locally
 
 ### Prerequisites
+
 - Node.js 18+
 - Python 3.11+
-- A [Supabase](https://supabase.com) project
-- A [Deepgram](https://deepgram.com) API key (free tier)
-- A [Gemini](https://aistudio.google.com) API key (free tier)
+- [Supabase](https://supabase.com) project (free tier works)
+- [Deepgram](https://deepgram.com) API key (free tier)
+- [Gemini](https://aistudio.google.com) API key (free tier)
 
-### 1. Clone the repo
+### 1. Clone
 
 ```bash
 git clone https://github.com/RushilJ/meetingmind.git
 cd meetingmind
 ```
 
-### 2. Database setup
+### 2. Database
 
-Run the following SQL in your Supabase SQL editor:
+Run this SQL in your Supabase SQL editor:
 
 ```sql
 CREATE TABLE users (
@@ -88,7 +93,7 @@ CREATE TABLE messages (
 );
 ```
 
-Create a Storage bucket named `meetings` and set it to public.
+Then create a Storage bucket named `meetings` and set it to **public**.
 
 ### 3. Backend
 
@@ -107,14 +112,14 @@ GEMINI_API_KEY=your_gemini_key
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_KEY=your_service_role_key
 SUPABASE_STORAGE_BUCKET=meetings
-JWT_SECRET=your_random_32_char_secret
+JWT_SECRET=any_random_32_char_string
 JWT_ALGORITHM=HS256
 JWT_EXPIRE_MINUTES=1440
 ```
 
 ```bash
 uvicorn main:app --reload
-# Backend running at http://localhost:8000
+# http://localhost:8000
 ```
 
 ### 4. Frontend
@@ -132,38 +137,45 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 
 ```bash
 npm run dev
-# Frontend running at http://localhost:3000
+# http://localhost:3000
 ```
 
 ---
 
 ## API reference
 
+All meeting and chat endpoints require `Authorization: Bearer <token>`.
+
 ### Auth
 ```
-POST /auth/register    → { user_id, username }
-POST /auth/login       → { access_token, token_type }
+POST /auth/register    { username, password }  →  { user_id, username }
+POST /auth/login       { username, password }  →  { access_token, token_type }
 ```
 
 ### Meetings
 ```
-GET    /meetings                → list all meetings (supports ?search=)
-POST   /meetings/upload         → upload file → transcribe → extract → return meeting
-GET    /meetings/{id}           → get single meeting
-PUT    /meetings/{id}           → update title
-DELETE /meetings/{id}           → delete meeting + storage file
-POST   /meetings/{id}/retry     → re-run pipeline on existing file
+GET    /meetings                →  list all meetings for user (?search= supported)
+POST   /meetings/upload         →  upload file → transcribe → extract → return meeting
+GET    /meetings/{id}           →  single meeting details
+PUT    /meetings/{id}           →  update title
+DELETE /meetings/{id}           →  delete meeting + storage file
+POST   /meetings/{id}/retry     →  re-run pipeline on existing stored file
 ```
 
 ### Chat
 ```
-GET  /meetings/{id}/messages    → get chat history
-POST /meetings/{id}/chat        → send message, get AI response
+GET  /meetings/{id}/messages    →  full chat history (chronological)
+POST /meetings/{id}/chat        →  { question }  →  { answer, message }
+```
+
+### Health
+```
+GET  /health  →  { status: "ok" }
 ```
 
 ---
 
-## Supported file formats
+## Supported formats
 
 `MP3 · MP4 · WAV · M4A · AAC · FLAC · OGG · MOV · MKV · WEBM` — max 25 MB
 
@@ -175,42 +187,42 @@ POST /meetings/{id}/chat        → send message, get AI response
 meetingmind/
 ├── backend/
 │   ├── main.py          # FastAPI app, CORS, router registration
-│   ├── auth.py          # Register, login, JWT utils
-│   ├── meetings.py      # Upload, list, get, update, delete, retry
-│   ├── chat.py          # Chat endpoints
-│   ├── ai.py            # Deepgram + Gemini API calls
-│   ├── database.py      # Supabase client
-│   ├── models.py        # Pydantic models
+│   ├── auth.py          # Register, login, JWT utils, get_current_user dependency
+│   ├── meetings.py      # Upload, list, get, update, delete, retry endpoints
+│   ├── chat.py          # Chat message endpoints
+│   ├── ai.py            # Deepgram + Gemini API calls, prompt logic
+│   ├── database.py      # Supabase client init
+│   ├── models.py        # Pydantic request/response models
 │   └── requirements.txt
 └── frontend/
     ├── app/
-    │   ├── page.tsx              # Login / register
-    │   ├── dashboard/page.tsx    # Meeting list + search
-    │   ├── upload/page.tsx       # Upload + processing state
-    │   └── meeting/[id]/page.tsx # Meeting detail + chat rail
+    │   ├── page.tsx               # Login / register
+    │   ├── dashboard/page.tsx     # Meeting list + search
+    │   ├── upload/page.tsx        # Upload + processing state
+    │   └── meeting/[id]/page.tsx  # Meeting detail + chat rail
     ├── components/
     │   ├── Mark.tsx       # Brand mark SVG
     │   └── Waveform.tsx   # Deterministic + live waveform
     └── lib/
-        ├── api.ts         # Typed API client
-        └── auth.ts        # Token helpers
+        ├── api.ts         # Typed API client, auto-redirect on 401
+        └── auth.ts        # Token helpers (localStorage)
 ```
 
 ---
 
-## Deployment
+## Deploying
 
 **Backend → Railway**
-1. New project → deploy from GitHub → set root directory to `backend`
+1. New project → deploy from GitHub → root directory: `backend`
 2. Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
-3. Add all env vars from `backend/.env`
+3. Add all env vars from `backend/.env` in the Variables tab
 
 **Frontend → Vercel**
-1. New project → import from GitHub → set root directory to `frontend`
+1. New project → import from GitHub → root directory: `frontend`
 2. Add env var: `NEXT_PUBLIC_API_URL=https://your-railway-url.up.railway.app`
+
+Both auto-deploy on every push to `main`.
 
 ---
 
-## License
-
-MIT
+*Built by Rushil Jain (BITS Pilani) — KVGAI Tech PS-I 2026*
