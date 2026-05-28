@@ -133,10 +133,10 @@ You have access to the meeting transcript below. When answering questions, you o
 ## Response Format
 Always structure your response like this:
 
-📋 **From the Transcript**
+📋 From the Transcript
 [What the transcript directly says about this question]
 
-⚡ **AI Recommendations**
+⚡ AI Recommendations
 [Your independent analysis, suggestions, or additional context based on your own reasoning]
 
 ## Rules

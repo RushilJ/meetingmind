@@ -361,7 +361,7 @@ export default function MeetingPage() {
       </header>
 
       {/* ── 2-column layout ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 460px", height: completedHeight, overflow: "hidden" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "3fr 2fr", height: completedHeight, overflow: "hidden" }}>
 
         {/* ── LEFT: tabs ── */}
         <div style={{
