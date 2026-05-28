@@ -100,7 +100,7 @@ function AiMessage({ text }: { text: string }) {
         </svg>
       </div>
       <div style={{
-        fontSize: 14, lineHeight: 1.6, color: "var(--color-mm-text)",
+        fontSize: 14, lineHeight: 1.65, color: "var(--color-mm-text2)",
         paddingLeft: 14, borderLeft: "1.5px solid oklch(0.55 0.16 268)",
       }}>
         {text}
