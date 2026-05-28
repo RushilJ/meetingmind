@@ -135,7 +135,7 @@ Always structure your response like this:
 
 📋 From the Transcript
 [What the transcript directly says about this question]
-
+[leave a blank line]
 ⚡ AI Recommendations
 [Your independent analysis, suggestions, or additional context based on your own reasoning]
 
